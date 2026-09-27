@@ -14,7 +14,7 @@ class BrokenSatelliteEnemy(Enemy):
     SPRITE_VERTICES = (
         (22, 6), (86,10), (83, 50), (22, 88), (0, 65)
     )
-    DRAW_COLLIDER = True
+    DRAW_COLLIDER = False
 
     def __init__(self, patterns=None, scale=2.0, collider_scale=1.0):
         if scale <= 0 or collider_scale <= 0:

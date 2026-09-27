@@ -9,10 +9,12 @@ class AlienEnemy(Enemy):
     """Piloto alienígena que atravessa a tela em rasantes horizontais."""
 
     LOOK_AT_PLAYER = False
-    DEFAULT_SPRITESHEET = ENEMYS_PATH + "alien.png"
+    DEFAULT_SPRITESHEET = ENEMYS_PATH + "alien_anim_final.png"
     DEFAULT_SFX_PATH = None
     MULTIPLY = 1.2
     FRAME_SIZE = 128
+    ANIMATIONS = {"default": tuple(range(10))}
+    ANIMATION_FRAME_DURATION = 0.10
     SCALE = 128 * MULTIPLY
     DRAW_COLLIDER = False
     DRAW_DANGER_LINE = False

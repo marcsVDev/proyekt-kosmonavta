@@ -62,8 +62,10 @@ class Player(Character):
         self.sound.set_volume(self.VOLUME)
 
         super().__init__()
+        self.previous_position = self.position.copy()
 
     def update(self, delta):
+        self.previous_position = self.position.copy()
         self.time_since_damage += max(0.0, delta)
         if self.invulnerable_remaining > 0:
             self.invulnerable_remaining = max(0.0, self.invulnerable_remaining - delta)

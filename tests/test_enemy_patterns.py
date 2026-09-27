@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import pygame
 
 from enemys.asteroid_enemy import AsteroidEnemy
+from enemys.alien_enemy import AlienEnemy
 from enemys.drone_enemy import DroneEnemy
 from enemys.gaivota_enemy import GaivotaEnemy
 from enemys.patterns import Charge, Yell
@@ -71,6 +72,18 @@ class EnemyPatternsTest(unittest.TestCase):
             enemy.update(enemy.ANIMATION_FRAME_DURATION)
             self.assertEqual(enemy._animation.frame_index, 1)
             enemy.update(enemy.ANIMATION_FRAME_DURATION * 3)
+            self.assertEqual(enemy._animation.frame_index, 0)
+        finally:
+            enemy.destroy()
+
+    def test_alien_animates_and_loops_through_ten_frames(self):
+        enemy = AlienEnemy(patterns=[Charge((100, 100))])
+        try:
+            self.assertEqual(enemy._animation.frames_count, 10)
+            self.assertEqual(enemy._animation.frame_index, 0)
+            enemy.update(enemy.ANIMATION_FRAME_DURATION * 3)
+            self.assertEqual(enemy._animation.frame_index, 3)
+            enemy.update(enemy.ANIMATION_FRAME_DURATION * 7)
             self.assertEqual(enemy._animation.frame_index, 0)
         finally:
             enemy.destroy()

@@ -21,7 +21,7 @@ def _positive(name, value):
 @dataclass(frozen=True)
 class OrganizedAttackConfig:
     count: int = 8; groups: int = 1; spacing: float = 170; organize_time: float = .5
-    hold: float = .3; warning: float = .5; attack_speed: float = 1900; simultaneous: bool = True
+    hold: float = .3; warning: float = .35; attack_speed: float = 2800; simultaneous: bool = True
     top_ratio: float = .15; rest: float = .2
     def __post_init__(self):
         _positive("quantidade", self.count); _positive("grupos", self.groups); _positive("espaçamento", self.spacing)
@@ -37,7 +37,7 @@ class PursuitConfig:
 
 @dataclass(frozen=True)
 class SideAttackConfig:
-    per_side: int = 4; spacing: float = 150; interval: float = 1.25; speed: float = 1900
+    per_side: int = 4; spacing: float = 150; interval: float = 1.25; speed: float = 2800
     warning: float = .45; x_margin: float = 120; top_ratio: float = .16; alternate: bool = True
     def __post_init__(self):
         _positive("quantidade por lado", self.per_side); _positive("espaçamento", self.spacing); _positive("velocidade", self.speed)
@@ -58,7 +58,7 @@ class AlienFlyByConfig:
     count: int = 20
     speed: float = 2600
     gap: float = .2
-    warning: float = .75
+    warning: float = .35
     margin: float = 180
     vertical_margin: float = 150
     seed: int | None = None

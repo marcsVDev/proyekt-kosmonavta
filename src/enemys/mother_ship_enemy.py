@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import math
 
 import pygame
 from pygame import Vector2
@@ -20,10 +19,10 @@ class MotherShipConfig:
     combat_position: tuple[float, float] = (960, 135)
     entry_duration: float = 2.5
     defeat_duration: float = 4.0
+    explosion_frame_duration: float = 0.18
 
 
 class MotherShipEnemy(Entity, Collidable):
-    damages_player = True
     is_mother_ship = True
 
     def __init__(self, config: MotherShipConfig = MotherShipConfig()):
@@ -36,6 +35,17 @@ class MotherShipEnemy(Entity, Collidable):
         height = round(source.get_height() * width / source.get_width())
         self.image = pygame.transform.scale(source, (width, height))
         self.damaged_image = pygame.transform.scale(damaged, (width, height))
+        explosion_sheet = load_image(ENEMYS_PATH + "explosion_navemae_final.png")
+        frame_width = 480
+        frame_height = explosion_sheet.get_bounding_rect().bottom
+        scale = width / frame_width
+        self.explosion_frames = [
+            pygame.transform.scale(
+                explosion_sheet.subsurface((index * frame_width, 0, frame_width, frame_height)),
+                (width, round(frame_height * scale)),
+            )
+            for index in range(explosion_sheet.get_width() // frame_width)
+        ]
         self.position = Vector2(config.combat_position[0], -height / 2)
         self.start_y = self.position.y
         self.combat_y = config.combat_position[1]
@@ -91,6 +101,25 @@ class MotherShipEnemy(Entity, Collidable):
         rect = self.body_rect
         return Vector2(rect.centerx, rect.bottom + 24)
 
+    def block_player(self, player):
+        if not self.active or self.defeated or not player._collider_vertices:
+            return
+        rect = self.body_rect
+        left = min(vertex.x for vertex in player._collider_vertices)
+        right = max(vertex.x for vertex in player._collider_vertices)
+        top = min(vertex.y for vertex in player._collider_vertices)
+        bottom = max(vertex.y for vertex in player._collider_vertices)
+        previous_top = top + player.previous_position.y - player.position.y
+        if (left >= rect.right or right <= rect.left or top >= rect.bottom
+                or (bottom <= rect.top and previous_top < rect.bottom)):
+            return
+        displacement = rect.bottom - top
+        player.position.y += displacement
+        player.align_rect()
+        for vertex in player._collider_vertices:
+            vertex.y += displacement
+        player.velocity.y = max(0, player.velocity.y)
+
     def take_missile_hit(self, armed=True):
         if self.defeated or not armed:
             return False
@@ -124,11 +153,6 @@ class MotherShipEnemy(Entity, Collidable):
                 screen, (SCREEN_WIDTH / 2, SCREEN_HEIGHT * .45)
             )
         if self.defeated:
-            for index in range(min(5, int(self.defeat_elapsed / .18) + 1)):
-                angle = index * 137.5
-                radius = 45 + index * 23
-                point = self.position + Vector2(radius, 0).rotate(angle)
-                size = 18 + int(8 * abs(math.sin(self.defeat_elapsed * 15 + index)))
-                pygame.draw.circle(screen, "#f9c22b", point, size)
-            if self.defeat_elapsed > 1.1:
-                pygame.draw.circle(screen, "white", self.position, int(45 + self.defeat_elapsed * 25), 8)
+            frame_index = (int(self.defeat_elapsed / self.config.explosion_frame_duration)
+                           % len(self.explosion_frames))
+            screen.blit(self.explosion_frames[frame_index], self.body_rect.topleft)

@@ -161,6 +161,34 @@ class BossAndHealthTest(unittest.TestCase):
                 ]
                 self.assertTrue(boss.collide_with(probe))
 
+    def test_boss_blocks_player_without_causing_contact_damage(self):
+        scene = Scene(True)
+        player = Player(RunState())
+        boss = MotherShipEnemy()
+        boss.update(3)
+        scene.add_entity(player)
+        scene.add_entity(boss)
+        self.addCleanup(scene.clear_scene)
+
+        player.position.update(boss.position.x, boss.body_rect.bottom + 10)
+        player.update(0)
+        player.velocity.y = -500
+        health = player.run_state.health
+        scene.check_collisions()
+        self.assertEqual(player.run_state.health, health)
+        self.assertAlmostEqual(min(vertex.y for vertex in player._collider_vertices),
+                               boss.body_rect.bottom)
+        self.assertEqual(player.velocity.y, 0)
+
+        player.position.y = boss.body_rect.bottom + 200
+        player.update(0)
+        player.position.y = boss.body_rect.top - 200
+        player._collider_vertices = player.get_rotated_vertices()
+        scene.check_collisions()
+        self.assertAlmostEqual(min(vertex.y for vertex in player._collider_vertices),
+                               boss.body_rect.bottom)
+        self.assertEqual(player.run_state.health, health)
+
     def test_missile_cannot_damage_boss_before_entry(self):
         boss = MotherShipEnemy()
         point = boss.body_rect.center
@@ -283,6 +311,38 @@ class BossAndHealthTest(unittest.TestCase):
             self.assertIs(boss.image, boss.damaged_image if boss.health <= 2 else original_image)
         self.assertFalse(boss.take_missile_hit(True))
         self.assertEqual(defeated, [boss])
+
+    def test_boss_explosion_follows_ship_and_is_drawn_above_it(self):
+        boss = MotherShipEnemy()
+        boss.update(3)
+        for _ in range(boss.max_health):
+            boss.take_missile_hit()
+
+        screen = Mock()
+        boss.draw(screen)
+        self.assertEqual(screen.blit.call_args_list[-1].args,
+                         (boss.explosion_frames[0], boss.body_rect.topleft))
+        self.assertEqual(screen.blit.call_args_list[-2].args[0], boss.image)
+
+        boss.update(boss.config.explosion_frame_duration)
+        screen.reset_mock()
+        boss.draw(screen)
+        self.assertEqual(screen.blit.call_args_list[-1].args,
+                         (boss.explosion_frames[1], boss.body_rect.topleft))
+
+        boss.update(boss.config.explosion_frame_duration * (len(boss.explosion_frames) - 1))
+        screen.reset_mock()
+        boss.draw(screen)
+        self.assertEqual(screen.blit.call_args_list[-1].args,
+                         (boss.explosion_frames[0], boss.body_rect.topleft))
+
+        boss.update(boss.config.defeat_duration)
+        screen.reset_mock()
+        boss.draw(screen)
+        expected_frame = (int(boss.defeat_elapsed / boss.config.explosion_frame_duration)
+                          % len(boss.explosion_frames))
+        self.assertEqual(screen.blit.call_args_list[-1].args,
+                         (boss.explosion_frames[expected_frame], boss.body_rect.topleft))
 
     def test_missile_waits_for_pending_spawns_enemies_and_beams(self):
         scene = Scene(True)

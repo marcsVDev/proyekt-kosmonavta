@@ -50,7 +50,7 @@ STAGES = (
           "assets/scenery/krasny_mir_station.png",
           (),
           "O voo espacial humano não pode avançar sem a participação ativa das mulheres.",
-          "VALENTINA TERESHKOVA", "Na história real, foi a primeira mulher no espaço, em 1963. Não viajou a Marte."),
+          "VALENTINA TERESHKOVA", "Na história real, foi a primeira mulher no espaço, em 1963."),
     Stage("02 / ESTRATOSFERA", "A CURIOSIDADE DECOLA",
           "A travessia sobe pelas nuvens e encontra os primeiros perigos.",
           "assets/scenery/ceucomnuvens.png",
@@ -167,8 +167,8 @@ class CreditsShip:
 
 
 class Credits:
-    SPEED = 105.0
-    FAST_MULTIPLIER = 4.0
+    SPEED = 60.0
+    FAST_MULTIPLIER = 5.0
 
     def __init__(self, on_finish, size=(SCREEN_WIDTH, SCREEN_HEIGHT)):
         self.on_finish = on_finish

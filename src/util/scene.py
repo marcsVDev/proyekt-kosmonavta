@@ -104,6 +104,10 @@ class Scene:
         if self.player is None or self.player.to_destroy:
             return
 
+        for entity in self.entities:
+            if getattr(entity, "is_mother_ship", False) and not entity.to_destroy:
+                entity.block_player(self.player)
+
         colliding_enemys: list[Enemy] = []
         for enemy in self.entities:
             if getattr(enemy, "is_guided_missile", False):

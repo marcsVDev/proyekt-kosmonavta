@@ -11,7 +11,7 @@ class RobotSeagullEnemy(Enemy):
     MIDDLE_SCALE = SCALE / 2
     DEFAULT_SPRITESHEET = ENEMYS_PATH + "gaivotarobo.png"
     DEFAULT_SFX_PATH = None
-    DRAW_COLLIDER = True
+    DRAW_COLLIDER = False
     _C = Vector2(64, 64)
     MIDDLE_VERTICES = [
         Vector2(7, 55) - _C,
