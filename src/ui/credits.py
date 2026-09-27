@@ -189,10 +189,10 @@ class Credits:
         self.ship = CreditsShip(size, self.scale)
         mars = pygame.image.load("assets/scenery/MARTE (1).png").convert_alpha()
         mars.set_colorkey(mars.get_at((0, 0)))
-        mars_width = max(1, int(640 * self.scale))
+        mars_width = self.width
         self.mars = pygame.transform.smoothscale(
             mars, (mars_width, round(mars.get_height() * mars_width / mars.get_width())))
-        self.mars_rect = self.mars.get_rect(midtop=(self.width // 2, 0))
+        self.mars_rect = self.mars.get_rect(midtop=(self.width // 2, -int(self.height * .17)))
         self.mars_mask = pygame.mask.from_surface(self.mars)
         self.finished = False
         self.cards = [self._stage_card(stage, index) for index, stage in enumerate(STAGES)]
@@ -356,6 +356,10 @@ class Credits:
 
     def draw(self, screen):
         screen.fill(INK)
+        mars_y = self.mars_rect.y + int(self.offset - self.finish_offset)
+        mars_visible = mars_y + self.mars.get_height() > 0
+        if mars_visible:
+            screen.blit(self.mars, (self.mars_rect.x, mars_y))
         for index, card in enumerate(self.cards):
             y = int(self.tops[index] + self.offset)
             if y >= self.height or y + card.get_height() <= 0:
@@ -363,9 +367,7 @@ class Credits:
             screen.blit(card, (self.margin, y))
             if index < len(STAGES):
                 self._draw_sprites(screen, STAGES[index], index, y)
-        if self.offset == self.finish_offset:
-            screen.blit(self.mars, self.mars_rect)
-        else:
+        if self.offset < self.finish_offset and not mars_visible:
             hint = self.fonts["micro"].render(
                 "WASD / SETAS  MOVER     •     ESC  MENU     •     ESPAÇO / SHIFT  ACELERAR", True, CREAM)
             screen.blit(hint, (int(24 * self.scale), self.height - hint.get_height() - int(12 * self.scale)))

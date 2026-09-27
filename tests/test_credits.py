@@ -41,13 +41,18 @@ class CreditsTest(unittest.TestCase):
         credits.update(.5)
         self.assertAlmostEqual(credits.offset, Credits.SPEED * .5)
         credits.update(.5, fast=True)
-        self.assertAlmostEqual(credits.offset, Credits.SPEED * 2.5)
+        self.assertAlmostEqual(credits.offset, Credits.SPEED * (.5 + .5 * Credits.FAST_MULTIPLIER))
         credits.offset = credits.finish_offset - 1
         credits.update(1)
         self.assertEqual(credits.offset, credits.finish_offset)
         finished.assert_not_called()
         credits.draw(screen)
         self.assertEqual(screen.get_at((0, 0))[:3], (0, 0, 0))
+        self.assertEqual(credits.mars.get_width(), SCREEN_WIDTH)
+        credits.offset = credits.finish_offset - 400
+        credits.draw(screen)
+        self.assertNotEqual(screen.get_at((SCREEN_WIDTH // 2, 100))[:3], (0, 0, 0))
+        credits.offset = credits.finish_offset
         credits.update(30, fast=True)
         self.assertEqual(credits.offset, credits.finish_offset)
         finished.assert_not_called()
