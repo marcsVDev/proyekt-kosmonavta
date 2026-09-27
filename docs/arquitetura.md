@@ -34,9 +34,10 @@ diretor do boss emite `PHASE_COMPLETED`, após a animação de derrota da
 Nave-Mãe. Depois da sexta fase, `Progression` emite `GAME_COMPLETED`.
 Nesse evento, `Game` abre `Credits`; a opção do menu usa o mesmo componente.
 `Credits` carrega os recursos uma vez, mantém as atribuições da equipe em
-`src/ui/credits.py` e volta ao menu com Esc ou após o último cartão. A nave
+`src/ui/credits.py` e volta ao menu com Esc ou ao tocar Marte no encerramento. A nave
 dos créditos usa os comandos de movimento do jogo, sem participar da cena de
-combate ou receber colisões.
+combate ou receber dano. Depois que o último cartão sai da tela, a rolagem
+para e um contato da nave com Marte encerra a cena.
 
 Entre duas fases, `Game` pausa a atualização da cena por 1 s e mantém o frame
 preto. A música ambiente é substituída por `musicfinal.mp3` ao entrar na

@@ -49,14 +49,13 @@ STAGES = (
     Stage("01 / KRASNY MIR", "O ESPAÇO TAMBÉM É DELAS",
           "Uma missão alternativa começa na estação Krasny Mir.",
           "assets/scenery/krasny_mir_station.png",
-          (("assets/player/foguete-chamas.png", 128, 128, 150, "cross"),),
+          (),
           "O voo espacial humano não pode avançar sem a participação ativa das mulheres.",
           "VALENTINA TERESHKOVA", "Na história real, foi a primeira mulher no espaço, em 1963. Não viajou a Marte."),
     Stage("02 / ESTRATOSFERA", "A CURIOSIDADE DECOLA",
           "A travessia sobe pelas nuvens e encontra os primeiros perigos.",
           "assets/scenery/ceucomnuvens.png",
-          (("assets/player/foguete-chamas.png", 128, 128, 130, "cross"),
-           ("assets/enemys/gaivota (1).png", 128, 128, 110, "float"),
+          (("assets/enemys/gaivota (1).png", 128, 128, 110, "float"),
            ("assets/enemys/meteor_enemy.png", 128, 128, 90, "spin")),
           "Mantenha o interesse pela ciência e vá bem nas aulas de matemática e ciências.",
           "SALLY RIDE", "Na história real, foi a primeira norte-americana no espaço, em 1983, e incentivou meninas nas ciências."),
@@ -71,8 +70,7 @@ STAGES = (
     Stage("04 / ESPAÇO PROFUNDO", "ALÉM DO CONHECIDO",
           "A nave atravessa minas e máquinas no espaço profundo.",
           "assets/scenery/espaco_proximo.png",
-          (("assets/player/foguete-chamas.png", 128, 128, 130, "cross"),
-           ("assets/enemys/minaespacial.png", 256, 256, 170, "spin"),
+          (("assets/enemys/minaespacial.png", 256, 256, 170, "spin"),
            ("assets/enemys/navedomal-sheet.png", 124, 124, 115, "float"),
            ("assets/enemys/alien_anim_final.png", 128, 128, 90, "float")),
           "Mulheres como Sally Ride e Mae Jemison abriram caminho para mim e para colegas.",
@@ -88,7 +86,7 @@ STAGES = (
     Stage("06 / MARTE", "O FUTURO SE ABRE",
           "Na ficção, Valentina chega a Marte. As conquistas reais das homenageadas aconteceram em outras missões.",
           "assets/scenery/MARTE (1).png",
-          (("assets/player/foguete-chamas.png", 128, 128, 140, "cross"),),
+          (),
           fact="Quando ciência e exploração encontram oportunidades, novas gerações podem ir mais longe."),
 )
 
@@ -159,10 +157,14 @@ class CreditsShip:
         self.tilt = pygame.math.lerp(self.tilt, target_tilt,
                                      1 - pow(2, -Player.TILT_RESPONSE * delta))
 
-    def draw(self, screen):
+    def image_and_rect(self):
         frame = self.frames[int(self.elapsed / Player.ANIMATION_FRAME_DURATION) % len(self.frames)]
         image = pygame.transform.rotate(frame, self.tilt)
-        screen.blit(image, image.get_rect(center=self.position))
+        return image, image.get_rect(center=self.position)
+
+    def draw(self, screen):
+        image, rect = self.image_and_rect()
+        screen.blit(image, rect)
 
 
 class Credits:
@@ -185,6 +187,14 @@ class Credits:
         self.backgrounds = {}
         self._load_assets()
         self.ship = CreditsShip(size, self.scale)
+        mars = pygame.image.load("assets/scenery/MARTE (1).png").convert_alpha()
+        mars.set_colorkey(mars.get_at((0, 0)))
+        mars_width = max(1, int(640 * self.scale))
+        self.mars = pygame.transform.smoothscale(
+            mars, (mars_width, round(mars.get_height() * mars_width / mars.get_width())))
+        self.mars_rect = self.mars.get_rect(midtop=(self.width // 2, 0))
+        self.mars_mask = pygame.mask.from_surface(self.mars)
+        self.finished = False
         self.cards = [self._stage_card(stage, index) for index, stage in enumerate(STAGES)]
         self.cards.append(self._team_card())
         self.cards.append(self._sources_card())
@@ -302,11 +312,19 @@ class Credits:
         return card
 
     def update(self, delta, fast=False, keys=None):
+        if self.finished:
+            return
         self.time += max(0.0, delta)
         self.ship.update(delta, keys if keys is not None else pygame.key.get_pressed())
-        self.offset += max(0.0, delta) * self.SPEED * (self.FAST_MULTIPLIER if fast else 1)
-        if self.offset >= self.finish_offset:
-            self.on_finish()
+        self.offset = min(self.finish_offset, self.offset + max(0.0, delta) * self.SPEED
+                          * (self.FAST_MULTIPLIER if fast else 1))
+        if self.offset == self.finish_offset:
+            image, rect = self.ship.image_and_rect()
+            ship_mask = pygame.mask.from_surface(image)
+            if self.mars_mask.overlap(ship_mask, (rect.x - self.mars_rect.x,
+                                                  rect.y - self.mars_rect.y)):
+                self.finished = True
+                self.on_finish()
 
     def _draw_sprites(self, screen, stage, index, card_y):
         area = self.image_rect(index).move(self.margin, card_y)
@@ -338,7 +356,6 @@ class Credits:
 
     def draw(self, screen):
         screen.fill(INK)
-        self.ship.draw(screen)
         for index, card in enumerate(self.cards):
             y = int(self.tops[index] + self.offset)
             if y >= self.height or y + card.get_height() <= 0:
@@ -346,9 +363,13 @@ class Credits:
             screen.blit(card, (self.margin, y))
             if index < len(STAGES):
                 self._draw_sprites(screen, STAGES[index], index, y)
-        hint = self.fonts["micro"].render(
-            "WASD / SETAS  MOVER     •     ESC  MENU     •     ESPAÇO / SHIFT  ACELERAR", True, CREAM)
-        screen.blit(hint, (int(24 * self.scale), self.height - hint.get_height() - int(12 * self.scale)))
+        if self.offset == self.finish_offset:
+            screen.blit(self.mars, self.mars_rect)
+        else:
+            hint = self.fonts["micro"].render(
+                "WASD / SETAS  MOVER     •     ESC  MENU     •     ESPAÇO / SHIFT  ACELERAR", True, CREAM)
+            screen.blit(hint, (int(24 * self.scale), self.height - hint.get_height() - int(12 * self.scale)))
+        self.ship.draw(screen)
 
 
 class CreditsMenuButton(UI):

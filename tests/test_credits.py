@@ -26,7 +26,7 @@ class CreditsTest(unittest.TestCase):
     def tearDownClass(cls):
         pygame.quit()
 
-    def test_assets_scroll_and_natural_finish(self):
+    def test_assets_scroll_and_landing_finish(self):
         finished = Mock()
         credits = Credits(finished)
         self.assertEqual(len(credits.cards), len(STAGES) + 2)
@@ -43,6 +43,19 @@ class CreditsTest(unittest.TestCase):
         credits.update(.5, fast=True)
         self.assertAlmostEqual(credits.offset, Credits.SPEED * 2.5)
         credits.offset = credits.finish_offset - 1
+        credits.update(1)
+        self.assertEqual(credits.offset, credits.finish_offset)
+        finished.assert_not_called()
+        credits.draw(screen)
+        self.assertEqual(screen.get_at((0, 0))[:3], (0, 0, 0))
+        credits.update(30, fast=True)
+        self.assertEqual(credits.offset, credits.finish_offset)
+        finished.assert_not_called()
+
+        credits.ship.position.update(credits.mars_rect.centerx,
+                                     credits.mars_rect.top + credits.mars_rect.height // 3)
+        credits.update(0)
+        finished.assert_called_once_with()
         credits.update(1)
         finished.assert_called_once_with()
 
@@ -95,6 +108,8 @@ class CreditsTest(unittest.TestCase):
         self.assertEqual(credits.ship.velocity.x, 0)
 
         self.assertTrue(all(not path.startswith("assets/scenery/")
+                            for stage in STAGES for path, *_ in stage.sprites))
+        self.assertTrue(all(path != "assets/player/foguete-chamas.png"
                             for stage in STAGES for path, *_ in stage.sprites))
         buran = credits.frames["assets/enemys/buran.png"][0]
         drone = credits.frames["assets/enemys/drone_animation.png"][0]
