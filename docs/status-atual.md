@@ -67,7 +67,9 @@ As fases são declaradas em `src/initializations/phases.py`. A lista
 - Ao concluir Marte, entram créditos comemorativos com as seis etapas, citações
   verificadas, distinção entre a missão fictícia e as conquistas reais, equipe
   e fontes. A rolagem desce com delta time; Espaço ou Shift acelera, Esc retorna
-  ao menu e o último cartão encerra a cena automaticamente.
+  ao menu e o último cartão encerra a cena automaticamente. A nave pode ser
+  pilotada com WASD ou setas durante a rolagem, sem colisões ou dano. O fundo
+  é preto, e os cenários ficam restritos às imagens estáticas dos cartões.
 - Retorno ao menu com Esc, limpando a cena e recriando a campanha para uma
   nova partida.
 
@@ -99,6 +101,7 @@ As fases são declaradas em `src/initializations/phases.py`. A lista
 | Voltar ao menu durante a campanha | Esc |
 | Abrir créditos no menu | Botão Créditos ou C |
 | Acelerar os créditos | Segurar Espaço ou Shift |
+| Mover a nave nos créditos | W, A, S, D ou setas direcionais |
 | Voltar ao menu nos créditos | Esc; também retorna ao fim da rolagem |
 | Avançar diálogo, quando usado | Espaço ou clique esquerdo |
 | Pular todos os diálogos da cena atual | Ctrl+Shift+P |

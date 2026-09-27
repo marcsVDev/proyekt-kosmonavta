@@ -1,11 +1,11 @@
-"""Rolagem comemorativa da campanha, sem entidades ou colisões de combate."""
+"""Rolagem comemorativa da campanha, sem colisões de combate."""
 
 from dataclasses import dataclass
 import math
-import random
 
 import pygame
 
+from entities.player import Player
 from game_consts import SCREEN_HEIGHT, SCREEN_WIDTH
 from initializations.misc import get_font
 from ui.ui import UI
@@ -14,7 +14,7 @@ from ui.ui import UI
 CREAM = (250, 229, 191)
 GOLD = (204, 158, 83)
 RED = (177, 48, 49)
-INK = (15, 17, 24)
+INK = (0, 0, 0)
 
 # Atribuições fornecidas pela equipe; este é o único cadastro dos autores.
 TEAM = (
@@ -63,17 +63,16 @@ STAGES = (
     Stage("03 / ESPAÇO PRÓXIMO", "NOVOS CAMINHOS",
           "Satélites, drones e a Terra compõem o arquivo desta etapa.",
           "assets/scenery/espaco_proximo.png",
-          (("assets/scenery/earth.png", 128, 128, 155, "float"),
-           ("assets/enemys/satelite_quebrado.png", 90, 90, 105, "spin"),
-           ("assets/enemys/drone_animation.png", 128, 128, 110, "float"),
-           ("assets/enemys/buran.png", 429, 429, 100, "float")),
+           (("assets/enemys/satelite_quebrado.png", 90, 90, 60, "spin"),
+            ("assets/enemys/drone_animation.png", 128, 128, 47, "float"),
+            ("assets/enemys/buran.png", 429, 429, 400, "float")),
           "Faça algo que você ama. Faça o que lhe dá medo.",
           "CHRISTINA KOCH", "Na história real, astronauta da NASA e participante de longas missões na Estação Espacial Internacional."),
     Stage("04 / ESPAÇO PROFUNDO", "ALÉM DO CONHECIDO",
           "A nave atravessa minas e máquinas no espaço profundo.",
           "assets/scenery/espaco_proximo.png",
           (("assets/player/foguete-chamas.png", 128, 128, 130, "cross"),
-           ("assets/enemys/minaespacial.png", 256, 256, 105, "spin"),
+           ("assets/enemys/minaespacial.png", 256, 256, 170, "spin"),
            ("assets/enemys/navedomal-sheet.png", 124, 124, 115, "float"),
            ("assets/enemys/alien_anim_final.png", 128, 128, 90, "float")),
           "Mulheres como Sally Ride e Mae Jemison abriram caminho para mim e para colegas.",
@@ -81,10 +80,10 @@ STAGES = (
     Stage("05 / ÓRBITA DE MARTE", "DESAFIOS EM ÓRBITA",
           "A nave-mãe e suas escoltas marcam o confronto final do jogo.",
           "assets/scenery/espaco_proximo.png",
-          (("assets/enemys/navemaeeuabossfinal.png", 480, 270, 250, "float"),
-           ("assets/enemys/gaivotarobo_anim (1).png", 128, 128, 105, "float"),
-           ("assets/enemys/navezinhabossfinal.png", 128, 128, 100, "float"),
-           ("assets/enemys/aeronavedomal.png", 128, 128, 85, "float")),
+          (("assets/enemys/navemaeeuabossfinal.png", 480, 270, 550, "float"),
+           ("assets/enemys/gaivotarobo_anim (1).png", 128, 128, 65, "float"),
+           ("assets/enemys/navezinhabossfinal.png", 128, 128, 60, "float"),
+           ("assets/enemys/aeronavedomal.png", 128, 128, 50, "float")),
           fact="Estes adversários pertencem somente à ficção do jogo."),
     Stage("06 / MARTE", "O FUTURO SE ABRE",
           "Na ficção, Valentina chega a Marte. As conquistas reais das homenageadas aconteceram em outras missões.",
@@ -118,6 +117,54 @@ def wrap(font, text, width):
     return lines
 
 
+class CreditsShip:
+    """Nave visual com os controles e a inércia do jogo, isolada do combate."""
+
+    def __init__(self, size, scale):
+        self.width, self.height = size
+        self.size = max(1, round(Player.SCALE * scale))
+        self.position = pygame.Vector2(self.width / 2, self.height - self.size / 2)
+        self.velocity = pygame.Vector2()
+        sheet = pygame.image.load(Player.DEFAULT_SPRITESHEET).convert_alpha()
+        self.frames = tuple(pygame.transform.smoothscale(
+            sheet.subsurface((index * Player.FRAME_SIZE, 0,
+                              Player.FRAME_SIZE, Player.FRAME_SIZE)),
+            (self.size, self.size)) for index in range(8))
+        self.elapsed = 0.0
+        self.tilt = 0.0
+
+    def update(self, delta, keys):
+        delta = max(0.0, delta)
+        self.elapsed += delta
+        direction = pygame.Vector2(
+            int(bool(keys[pygame.K_d] or keys[pygame.K_RIGHT]))
+            - int(bool(keys[pygame.K_a] or keys[pygame.K_LEFT])),
+            int(bool(keys[pygame.K_s] or keys[pygame.K_DOWN]))
+            - int(bool(keys[pygame.K_w] or keys[pygame.K_UP])),
+        )
+        if direction.length_squared():
+            direction.normalize_ip()
+        speed = Player.SPEED * self.width / SCREEN_WIDTH
+        acceleration = (Player.ACCELERATION if direction else Player.BRAKE_ACCELERATION) * self.width / SCREEN_WIDTH
+        self.velocity = self.velocity.move_towards(direction * speed, acceleration * delta)
+        self.position += self.velocity * delta
+        half = self.size / 2
+        for axis, limit in (("x", self.width), ("y", self.height)):
+            value = getattr(self.position, axis)
+            clamped = max(half, min(limit - half, value))
+            if clamped != value:
+                setattr(self.position, axis, clamped)
+                setattr(self.velocity, axis, 0)
+        target_tilt = -(self.velocity.x / speed) * Player.MAX_TILT
+        self.tilt = pygame.math.lerp(self.tilt, target_tilt,
+                                     1 - pow(2, -Player.TILT_RESPONSE * delta))
+
+    def draw(self, screen):
+        frame = self.frames[int(self.elapsed / Player.ANIMATION_FRAME_DURATION) % len(self.frames)]
+        image = pygame.transform.rotate(frame, self.tilt)
+        screen.blit(image, image.get_rect(center=self.position))
+
+
 class Credits:
     SPEED = 105.0
     FAST_MULTIPLIER = 4.0
@@ -137,6 +184,7 @@ class Credits:
         self.frames = {}
         self.backgrounds = {}
         self._load_assets()
+        self.ship = CreditsShip(size, self.scale)
         self.cards = [self._stage_card(stage, index) for index, stage in enumerate(STAGES)]
         self.cards.append(self._team_card())
         self.cards.append(self._sources_card())
@@ -147,8 +195,6 @@ class Credits:
             self.tops.append(top)
             top -= height + self.gap
         self.finish_offset = self.height - self.tops[-1]
-        rng = random.Random(1963)
-        self.stars = [(rng.randrange(self.width), rng.randrange(self.height), rng.choice((1, 1, 2))) for _ in range(100)]
 
     def _load_assets(self):
         for stage in STAGES:
@@ -187,16 +233,11 @@ class Credits:
 
     def _base(self, height):
         card = pygame.Surface((self.card_width, height), pygame.SRCALPHA)
-        card.fill((20, 22, 30, 248))
-        pygame.draw.rect(card, GOLD, card.get_rect(), max(2, int(3 * self.scale)))
-        pygame.draw.rect(card, RED, (0, 0, int(17 * self.scale), height))
+        card.fill((0, 0, 0, 224))
         return card
 
     def _stage_card(self, stage, index):
         card = self._base(self.card_height)
-        if index in (0, len(STAGES) - 1):
-            pygame.draw.rect(card, RED, (int(17 * self.scale), int(3 * self.scale),
-                                         self.card_width - int(20 * self.scale), int(193 * self.scale)))
         pad = int(64 * self.scale)
         inner = self.card_width - 2 * pad
         self._text(card, f"ARQUIVO DE MISSÃO  /  {stage.name}", pad, int(35 * self.scale), inner, "small",
@@ -207,15 +248,6 @@ class Credits:
         backdrop = self.backgrounds[stage.background]
         scaled = self._cover(backdrop, image_rect.size)
         card.blit(scaled, image_rect)
-        shade = pygame.Surface(image_rect.size, pygame.SRCALPHA)
-        shade.fill((10, 13, 22, 75))
-        grid_step = max(24, int(48 * self.scale))
-        for x in range(0, image_rect.width, grid_step):
-            pygame.draw.line(shade, (212, 170, 92, 32), (x, 0), (x, image_rect.height))
-        for y in range(0, image_rect.height, grid_step):
-            pygame.draw.line(shade, (212, 170, 92, 32), (0, y), (image_rect.width, y))
-        card.blit(shade, image_rect)
-        pygame.draw.rect(card, GOLD, image_rect, max(2, int(2 * self.scale)))
         text_x = pad if index % 2 else image_rect.right + int(45 * self.scale)
         text_width = image_rect.left - pad - int(45 * self.scale) if index % 2 else self.card_width - pad - text_x
         y = image_rect.top + int(12 * self.scale)
@@ -269,8 +301,9 @@ class Credits:
         self._text(card, "PESSOAS REAIS. MISSÃO A MARTE FICTÍCIA.", pad, height - int(80 * self.scale), width, "body")
         return card
 
-    def update(self, delta, fast=False):
+    def update(self, delta, fast=False, keys=None):
         self.time += max(0.0, delta)
+        self.ship.update(delta, keys if keys is not None else pygame.key.get_pressed())
         self.offset += max(0.0, delta) * self.SPEED * (self.FAST_MULTIPLIER if fast else 1)
         if self.offset >= self.finish_offset:
             self.on_finish()
@@ -280,12 +313,18 @@ class Credits:
         previous_clip = screen.get_clip()
         screen.set_clip(area)
         count = len(stage.sprites)
-        for number, (path, _, _, _, motion) in enumerate(stage.sprites):
+        # As naves grandes ficam atrás das pequenas, sem nivelar suas escalas.
+        order = sorted(range(count), key=lambda number: stage.sprites[number][3], reverse=True)
+        for number in order:
+            path, _, _, _, motion = stage.sprites[number]
             frames = self.frames[path]
             frame = frames[int(self.time * (7 if len(frames) > 1 else 1) + number) % len(frames)]
             phase = self.time + number * 1.8
             x = area.left + int((number + 1) * area.width / (count + 1)) - frame.get_width() // 2
             y = area.top + int((.3 + .36 * (number % 2)) * area.height) - frame.get_height() // 2
+            if frame.get_width() > area.width * .45:
+                x = area.centerx - frame.get_width() // 2
+                y = area.centery - frame.get_height() // 2
             if motion == "cross":
                 x = area.left + int((self.time * 65 * self.scale + number * 130) % (area.width + frame.get_width())) - frame.get_width()
                 y += int(math.sin(phase) * 13 * self.scale)
@@ -299,10 +338,7 @@ class Credits:
 
     def draw(self, screen):
         screen.fill(INK)
-        for x, y, radius in self.stars:
-            pygame.draw.circle(screen, GOLD, (x, int((y + self.offset * .13) % self.height)), radius)
-        pygame.draw.circle(screen, (89, 39, 42), (self.width // 2, self.height // 2), int(self.height * .37), 2)
-        pygame.draw.circle(screen, (64, 50, 48), (self.width // 2, self.height // 2), int(self.height * .47), 1)
+        self.ship.draw(screen)
         for index, card in enumerate(self.cards):
             y = int(self.tops[index] + self.offset)
             if y >= self.height or y + card.get_height() <= 0:
@@ -310,11 +346,9 @@ class Credits:
             screen.blit(card, (self.margin, y))
             if index < len(STAGES):
                 self._draw_sprites(screen, STAGES[index], index, y)
-        strip = pygame.Surface((self.width, int(46 * self.scale)), pygame.SRCALPHA)
-        strip.fill((10, 12, 18, 230))
-        screen.blit(strip, (0, self.height - strip.get_height()))
-        hint = self.fonts["micro"].render("ESC  MENU     •     SEGURE ESPAÇO OU SHIFT PARA ACELERAR", True, CREAM)
-        screen.blit(hint, hint.get_rect(center=(self.width // 2, self.height - strip.get_height() // 2)))
+        hint = self.fonts["micro"].render(
+            "WASD / SETAS  MOVER     •     ESC  MENU     •     ESPAÇO / SHIFT  ACELERAR", True, CREAM)
+        screen.blit(hint, (int(24 * self.scale), self.height - hint.get_height() - int(12 * self.scale)))
 
 
 class CreditsMenuButton(UI):

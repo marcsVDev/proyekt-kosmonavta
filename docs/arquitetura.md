@@ -10,7 +10,7 @@ O delta de tempo é convertido para segundos e entregue aos sistemas e entidades
 ```text
 Game
  ├─ Scene(menu): fundo, título, Play e Créditos
- ├─ Credits: cartões pré-renderizados, sprites animados e rolagem por delta
+ ├─ Credits: cartões pré-renderizados, sprites animados, nave visual controlável e rolagem por delta
  ├─ RunState: HP e derrota da campanha
  └─ Scene(game)
      ├─ Progression: escolhe e avança fases
@@ -34,7 +34,9 @@ diretor do boss emite `PHASE_COMPLETED`, após a animação de derrota da
 Nave-Mãe. Depois da sexta fase, `Progression` emite `GAME_COMPLETED`.
 Nesse evento, `Game` abre `Credits`; a opção do menu usa o mesmo componente.
 `Credits` carrega os recursos uma vez, mantém as atribuições da equipe em
-`src/ui/credits.py` e volta ao menu com Esc ou após o último cartão.
+`src/ui/credits.py` e volta ao menu com Esc ou após o último cartão. A nave
+dos créditos usa os comandos de movimento do jogo, sem participar da cena de
+combate ou receber colisões.
 
 Entre duas fases, `Game` pausa a atualização da cena por 1 s e mantém o frame
 preto. A música ambiente é substituída por `musicfinal.mp3` ao entrar na

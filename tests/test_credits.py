@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+from collections import defaultdict
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -70,6 +71,37 @@ class CreditsTest(unittest.TestCase):
         Game.game_completed(game)
         self.assertEqual(game.current_scene, "credits")
         self.assertTrue(game.credits_from_game)
+
+    def test_ship_moves_without_affecting_scroll_or_stage_content(self):
+        credits = Credits(Mock())
+        keys = defaultdict(bool)
+        start = credits.ship.position.copy()
+        keys[pygame.K_d] = True
+        keys[pygame.K_w] = True
+        credits.update(.1, keys=keys)
+        self.assertGreater(credits.ship.position.x, start.x)
+        self.assertLess(credits.ship.position.y, start.y)
+        self.assertAlmostEqual(credits.offset, Credits.SPEED * .1)
+
+        keys.clear()
+        keys[pygame.K_LEFT] = True
+        credits.update(.5, keys=keys)
+        self.assertLess(credits.ship.velocity.x, 0)
+        self.assertAlmostEqual(credits.offset, Credits.SPEED * .6)
+
+        for _ in range(30):
+            credits.update(.1, keys=keys)
+        self.assertGreaterEqual(credits.ship.position.x, credits.ship.size / 2)
+        self.assertEqual(credits.ship.velocity.x, 0)
+
+        self.assertTrue(all(not path.startswith("assets/scenery/")
+                            for stage in STAGES for path, *_ in stage.sprites))
+        buran = credits.frames["assets/enemys/buran.png"][0]
+        drone = credits.frames["assets/enemys/drone_animation.png"][0]
+        self.assertGreater(buran.get_width(), drone.get_width() * 7)
+        screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        credits.draw(screen)
+        self.assertEqual(screen.get_at((0, 0))[:3], (0, 0, 0))
 
 
 if __name__ == "__main__":

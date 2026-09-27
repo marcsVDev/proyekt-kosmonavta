@@ -120,9 +120,9 @@ class Game:
 
             self.screen.fill(self.FILL_COLOR)
             if self.current_scene == "credits":
-                self.credits.update(delta, pygame.key.get_pressed()[pygame.K_SPACE] or
-                                    pygame.key.get_pressed()[pygame.K_LSHIFT] or
-                                    pygame.key.get_pressed()[pygame.K_RSHIFT])
+                keys = pygame.key.get_pressed()
+                self.credits.update(delta, keys[pygame.K_SPACE] or
+                                    keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT], keys)
                 if self.current_scene == "credits":
                     self.credits.draw(self.screen)
             elif self.current_scene == "game" and self.phase_transition_active:
