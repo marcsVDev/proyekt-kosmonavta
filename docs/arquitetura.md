@@ -9,7 +9,7 @@ O delta de tempo é convertido para segundos e entregue aos sistemas e entidades
 
 ```text
 Game
- ├─ Scene(menu): fundo, título, Play e Créditos
+ ├─ Scene(menu): fundo, título e Play
  ├─ Credits: cartões pré-renderizados, sprites animados, nave visual controlável e rolagem por delta
  ├─ RunState: HP e derrota da campanha
  └─ Scene(game)
@@ -32,7 +32,7 @@ ao `BossFightSystem`. Todas as instâncias de `Player` recebem o mesmo
 `RunState`, portanto a troca de fase não cura Valentina. Na Órbita, somente o
 diretor do boss emite `PHASE_COMPLETED`, após a animação de derrota da
 Nave-Mãe. Depois da sexta fase, `Progression` emite `GAME_COMPLETED`.
-Nesse evento, `Game` abre `Credits`; a opção do menu usa o mesmo componente.
+Nesse evento, `Game` abre `Credits`; Ctrl+Shift+C na tela inicial usa o mesmo componente.
 `Credits` carrega os recursos uma vez, mantém as atribuições da equipe em
 `src/ui/credits.py` e volta ao menu com Esc ou ao tocar Marte no encerramento. A nave
 dos créditos usa os comandos de movimento do jogo, sem participar da cena de

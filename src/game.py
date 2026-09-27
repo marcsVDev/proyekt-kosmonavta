@@ -15,7 +15,7 @@ from util.scene import Scene
 from util.run_state import RunState
 from ui.health_bar import HealthBar
 from ui.defeat_overlay import DefeatOverlay
-from ui.credits import Credits, CreditsMenuButton
+from ui.credits import Credits
 from entities.enemy import Enemy
 from entities.enemy_projectile import EnemyProjectile
 from entities.enemy_beam import EnemyBeam
@@ -52,7 +52,6 @@ class Game:
         inital_menu = Scene(game_scene=False) 
 
         inital_menu.add_ui(get_play_button(self.play))
-        inital_menu.add_ui(CreditsMenuButton(self.show_credits))
         inital_menu.add_entity(get_initial_menu_background())
         inital_menu.add_ui(Title())
         self.scenes["menu"] = inital_menu
@@ -157,7 +156,9 @@ class Game:
             return
         if self.current_scene == "menu" and key in (pygame.K_RETURN, pygame.K_KP_ENTER):
             self.play()
-        elif self.current_scene == "menu" and key == pygame.K_c:
+        elif (self.current_scene == "menu" and key == pygame.K_c
+              and modifiers & pygame.KMOD_CTRL
+              and modifiers & pygame.KMOD_SHIFT):
             self.show_credits()
         elif self.current_scene == "credits" and key == pygame.K_ESCAPE:
             self.return_to_menu()

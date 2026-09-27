@@ -13,7 +13,7 @@ import pygame
 
 from game import Game
 from game_consts import SCREEN_HEIGHT, SCREEN_WIDTH
-from ui.credits import Credits, CreditsMenuButton, STAGES, TEAM
+from ui.credits import Credits, STAGES, TEAM
 
 
 class CreditsTest(unittest.TestCase):
@@ -68,23 +68,25 @@ class CreditsTest(unittest.TestCase):
         smaller.draw(pygame.Surface((1280, 720)))
         self.assertGreater(smaller.margin, 0)
 
-    def test_menu_and_game_open_credits(self):
+    def test_shortcut_only_in_menu_and_game_completion_opens_credits(self):
         game = Game.__new__(Game)
         game.screen = pygame.display.get_surface()
         game.current_scene = "menu"
         game.change_scene_to = Game.change_scene_to.__get__(game)
-        Game.handle_keydown(game, pygame.K_c)
+        for modifiers in (0, pygame.KMOD_CTRL, pygame.KMOD_SHIFT):
+            Game.handle_keydown(game, pygame.K_c, modifiers)
+            self.assertEqual(game.current_scene, "menu")
+
+        shortcut = pygame.KMOD_CTRL | pygame.KMOD_SHIFT
+        Game.handle_keydown(game, pygame.K_c, shortcut)
         self.assertEqual(game.current_scene, "credits")
         self.assertFalse(game.credits_from_game)
         Game.return_to_menu(game)
         self.assertEqual(game.current_scene, "menu")
 
-        button = CreditsMenuButton(game.show_credits)
-        button.update(0, [pygame.event.Event(pygame.MOUSEBUTTONDOWN,
-                                            {"button": 1, "pos": button.area.center})])
-        self.assertEqual(game.current_scene, "credits")
-        Game.return_to_menu(game)
         game.current_scene = "game"
+        Game.handle_keydown(game, pygame.K_c, shortcut)
+        self.assertEqual(game.current_scene, "game")
         game.campaign_completed = False
         Game.game_completed(game)
         self.assertEqual(game.current_scene, "credits")

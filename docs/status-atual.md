@@ -29,7 +29,7 @@ As fases são declaradas em `src/initializations/phases.py`. A lista
 
 ## O que está jogável
 
-- Menu inicial com botão Play, atalho Enter e opção Créditos (botão ou tecla C).
+- Menu inicial com botão Play, atalho Enter e Ctrl+Shift+C para abrir os créditos.
 - Música ambiente na campanha, trilha própria durante a boss fight, efeitos de
   motor e efeitos de inimigos existentes.
 - Transição preta de 1 s entre fases, com a cena pausada durante a troca; a saída da Estratosfera e o pouso em Marte exibem seus spritesheets antes da progressão. O pouso termina com novas falas e os créditos.
@@ -101,7 +101,7 @@ As fases são declaradas em `src/initializations/phases.py`. A lista
 | Lançar em Krasny Mir | Botão de lançamento |
 | Mover a nave | W, A, S, D ou setas direcionais |
 | Voltar ao menu durante a campanha | Esc |
-| Abrir créditos no menu | Botão Créditos ou C |
+| Abrir créditos no menu | Ctrl+Shift+C |
 | Acelerar os créditos | Segurar Espaço ou Shift |
 | Mover a nave nos créditos | W, A, S, D ou setas direcionais |
 | Voltar ao menu nos créditos | Esc; tocar Marte depois da rolagem também encerra os créditos |

@@ -8,7 +8,6 @@ import pygame
 from entities.player import Player
 from game_consts import SCREEN_HEIGHT, SCREEN_WIDTH
 from initializations.misc import get_font
-from ui.ui import UI
 
 
 CREAM = (250, 229, 191)
@@ -372,26 +371,3 @@ class Credits:
                 "WASD / SETAS  MOVER     •     ESC  MENU     •     ESPAÇO / SHIFT  ACELERAR", True, CREAM)
             screen.blit(hint, (int(24 * self.scale), self.height - hint.get_height() - int(12 * self.scale)))
         self.ship.draw(screen)
-
-
-class CreditsMenuButton(UI):
-    """Entrada textual para os créditos no menu existente."""
-
-    def __init__(self, callback):
-        super().__init__()
-        self.callback = callback
-        self.font = get_font(42)
-        self.label = self.font.render("CRÉDITOS", True, CREAM)
-        self.area = self.label.get_rect(center=(SCREEN_WIDTH // 2, int(SCREEN_HEIGHT * .78)))
-        self.area.inflate_ip(80, 35)
-
-    def update(self, delta, events):
-        for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.area.collidepoint(event.pos):
-                self.callback()
-
-    def draw(self, screen):
-        hovered = self.area.collidepoint(pygame.mouse.get_pos())
-        pygame.draw.rect(screen, (30, 22, 29), self.area)
-        pygame.draw.rect(screen, CREAM if hovered else GOLD, self.area, 3)
-        screen.blit(self.label, self.label.get_rect(center=self.area.center))
