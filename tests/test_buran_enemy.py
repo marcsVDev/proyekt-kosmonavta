@@ -11,7 +11,7 @@ import pygame
 
 from collision.collidable import Collidable
 from enemys.buran_enemy import BuranEnemy
-from initializations.enemy_waves import get_enemy_registry, near_space_waves, stratosphere_waves
+from initializations.enemy_waves import get_enemy_registry, near_space_waves
 
 
 class BuranEnemyTest(unittest.TestCase):
@@ -63,20 +63,28 @@ class BuranEnemyTest(unittest.TestCase):
             for i, vertex in enumerate(vertices)]
         self.assertTrue(all(turn > 0 for turn in turns) or all(turn < 0 for turn in turns))
 
-    def test_waves_move_slower_and_start_and_finish_outside_screen(self):
+    def test_flybys_enter_and_leave_with_entire_sprite_off_screen(self):
         registry = get_enemy_registry()
-        for waves in (stratosphere_waves(), near_space_waves()):
-            wave = next(wave for wave in waves if wave.spawns[0].enemy == "buran")
-            for spawn in wave.spawns[:2]:
+        wave = next(wave for wave in near_space_waves() if wave.spawns[0].enemy == "buran")
+        screen = pygame.Rect(0, 0, 1920, 1080)
+        for index, spawn in enumerate(wave.spawns):
+            with self.subTest(index=index):
                 enemy = registry.create(spawn)
                 self.addCleanup(enemy.destroy)
                 pattern = enemy._patterns[0]
-                start = enemy.position.copy()
-                self.assertFalse(enemy._rect.colliderect(pygame.Rect(0, 0, 1920, 1080)))
-                enemy.update(.1)
-                self.assertAlmostEqual(enemy.position.distance_to(start), 100)
+                expected_margin = enemy.SCALE / 2 + 180
+                self.assertAlmostEqual(abs(pattern.start.x - (0 if index % 2 == 0 else 1920)),
+                                       expected_margin)
+                self.assertFalse(enemy._rect.colliderect(screen))
+                enemy.update(pattern.warning + (pattern.duration - pattern.warning) / 2)
+                self.assertGreaterEqual(enemy._rect.left, screen.left)
+                self.assertLessEqual(enemy._rect.right, screen.right)
                 enemy.update(pattern.duration)
-                self.assertFalse(enemy._rect.colliderect(pygame.Rect(0, 0, 1920, 1080)))
+                self.assertFalse(enemy._rect.colliderect(screen))
+                self.assertAlmostEqual(enemy.position.x, pattern.end.x)
+                if index + 1 < len(wave.spawns):
+                    next_spawn = wave.spawns[index + 1]
+                    self.assertGreaterEqual(next_spawn.delay, spawn.delay + pattern.duration)
 
 
 if __name__ == "__main__":

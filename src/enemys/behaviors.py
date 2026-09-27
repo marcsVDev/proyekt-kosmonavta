@@ -6,6 +6,7 @@ from typing import Literal
 
 from pygame import Vector2
 
+from enemys.buran_enemy import BuranEnemy
 from enemys.attacks import AttractionAttack, RotatingBeamAttack
 from enemys.patterns import Charge, Float, FlyBy, LaserSweep, MoveTo, Orbit, PrepareLaser, Pursuit, Wait, Yell, ZigZag
 from enemys.patterns.telegraphed_fly_by import TargetedSatelliteFlyBy, TelegraphedFlyBy
@@ -251,7 +252,9 @@ def alien_flybys(width, height, config=AlienFlyByConfig(), enemy="alien"):
         raise ValueError("A margem vertical não deixa espaço para o ataque alienígena")
 
     rng = random.Random(config.seed)
-    traversal_time = (width + config.margin * 2) / config.speed
+    # O Buran deve começar e terminar com o sprite inteiro fora da tela.
+    horizontal_margin = config.margin + (BuranEnemy.SCALE / 2 if enemy == "buran" else 0)
+    traversal_time = (width + horizontal_margin * 2) / config.speed
     spawn_interval = config.warning + traversal_time + config.gap
     starts_from_left = config.start_from == "left"
     spawns = []
@@ -263,8 +266,8 @@ def alien_flybys(width, height, config=AlienFlyByConfig(), enemy="alien"):
             y = height - config.vertical_margin / 2
         else:
             y = rng.uniform(config.vertical_margin, height - config.vertical_margin)
-        start_x, end_x = (-config.margin, width + config.margin) if from_left else (
-            width + config.margin, -config.margin
+        start_x, end_x = (-horizontal_margin, width + horizontal_margin) if from_left else (
+            width + horizontal_margin, -horizontal_margin
         )
         start, end = Vector2(start_x, y), Vector2(end_x, y)
         # A rotação permanece zerada. A arte original olha para a esquerda;
