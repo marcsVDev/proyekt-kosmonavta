@@ -12,6 +12,7 @@ import pygame
 
 from enemys.asteroid_enemy import AsteroidEnemy
 from enemys.drone_enemy import DroneEnemy
+from enemys.gaivota_enemy import GaivotaEnemy
 from enemys.patterns import Charge, Yell
 from initializations.enemy_waves import get_enemy_registry, near_space_waves, stratosphere_waves
 
@@ -60,6 +61,19 @@ class EnemyPatternsTest(unittest.TestCase):
         enemy.update(enemy.ANIMATION_FRAME_DURATION)
         self.assertNotEqual(enemy._animation.frame_index, initial_frame)
         enemy.destroy()
+
+    def test_gaivota_animates_and_loops_through_four_frames(self):
+        enemy = GaivotaEnemy(patterns=[Charge((100, 100))])
+        try:
+            self.assertTrue(enemy.DEFAULT_SPRITESHEET.endswith("gaivota (1).png"))
+            self.assertEqual(enemy._animation.frames_count, 4)
+            self.assertEqual(enemy._animation.frame_index, 0)
+            enemy.update(enemy.ANIMATION_FRAME_DURATION)
+            self.assertEqual(enemy._animation.frame_index, 1)
+            enemy.update(enemy.ANIMATION_FRAME_DURATION * 3)
+            self.assertEqual(enemy._animation.frame_index, 0)
+        finally:
+            enemy.destroy()
 
 
 if __name__ == "__main__":
