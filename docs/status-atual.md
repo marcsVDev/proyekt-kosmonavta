@@ -22,17 +22,17 @@ verticalmente, transmitindo a subida e o afastamento da Terra.
 | Espaço Próximo | Satélite quebrado, Buran e drones | Implementada com drones, satélite direcionado ao jogador, rasantes do Buran, Terra e fundo rolável. |
 | Espaço Profundo | Drones e minas espaciais | Implementada com drones, drones do mal com raio giratório e minas gravitacionais. |
 | Órbita de Marte | Nave-mãe, gaivotas-robô, escoltas, lasers e mísseis | Boss fight implementada com sete ondas temporais e repetição das ondas 2–7. |
-| Chegada a Marte | Desfecho da missão | Diálogo de aproximação, pouso de cerca de 12 s, falas após o pouso e tela de agradecimento; movimento bloqueado. |
+| Chegada a Marte | Desfecho da missão | Diálogo de aproximação, pouso de cerca de 12 s, falas após o pouso e créditos; movimento bloqueado. |
 
 As fases são declaradas em `src/initializations/phases.py`. A lista
 `planned_enemies` registra o conteúdo previsto, mas não o instancia.
 
 ## O que está jogável
 
-- Menu inicial com botão Play e atalho Enter.
+- Menu inicial com botão Play, atalho Enter e opção Créditos (botão ou tecla C).
 - Música ambiente na campanha, trilha própria durante a boss fight, efeitos de
   motor e efeitos de inimigos existentes.
-- Transição preta de 1 s entre fases, com a cena pausada durante a troca; a saída da Estratosfera e o pouso em Marte exibem seus spritesheets antes da progressão. O pouso termina com novas falas e "Obrigado por jogar".
+- Transição preta de 1 s entre fases, com a cena pausada durante a troca; a saída da Estratosfera e o pouso em Marte exibem seus spritesheets antes da progressão. O pouso termina com novas falas e os créditos.
 - Campanha linear com seis fases; Krasny Mir mostra o primeiro quadro da
   animação de lançamento parado e o botão no canto inferior direito até o
   clique, então reproduz a animação e avança. As demais fases avançam por
@@ -64,6 +64,10 @@ As fases são declaradas em `src/initializations/phases.py`. A lista
 - Mísseis do chefe perseguem pelo menor ângulo, com giro limitado a 240°/s;
   quando armados, causam dano ao colidir com qualquer ponto do casco, inclusive
   nas bordas. A Nave-Mãe pisca ao receber o impacto.
+- Ao concluir Marte, entram créditos comemorativos com as seis etapas, citações
+  verificadas, distinção entre a missão fictícia e as conquistas reais, equipe
+  e fontes. A rolagem desce com delta time; Espaço ou Shift acelera, Esc retorna
+  ao menu e o último cartão encerra a cena automaticamente.
 - Retorno ao menu com Esc, limpando a cena e recriando a campanha para uma
   nova partida.
 
@@ -93,7 +97,9 @@ As fases são declaradas em `src/initializations/phases.py`. A lista
 | Lançar em Krasny Mir | Botão de lançamento |
 | Mover a nave | W, A, S, D ou setas direcionais |
 | Voltar ao menu durante a campanha | Esc |
-| Voltar ao menu na tela final | Enter ou Esc |
+| Abrir créditos no menu | Botão Créditos ou C |
+| Acelerar os créditos | Segurar Espaço ou Shift |
+| Voltar ao menu nos créditos | Esc; também retorna ao fim da rolagem |
 | Avançar diálogo, quando usado | Espaço ou clique esquerdo |
 | Pular todos os diálogos da cena atual | Ctrl+Shift+P |
 | Ativar/desativar God Mode | Ctrl+Shift+O |

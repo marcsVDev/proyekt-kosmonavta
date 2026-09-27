@@ -15,7 +15,7 @@ from util.scene import Scene
 from util.run_state import RunState
 from ui.health_bar import HealthBar
 from ui.defeat_overlay import DefeatOverlay
-from ui.victory_overlay import VictoryOverlay
+from ui.credits import Credits, CreditsMenuButton
 from entities.enemy import Enemy
 from entities.enemy_projectile import EnemyProjectile
 from entities.enemy_beam import EnemyBeam
@@ -46,10 +46,13 @@ class Game:
         self.run_state = RunState()
         self._pending_phase = None
         self._phase_transition_remaining = 0.0
+        self.credits = None
+        self.credits_from_game = False
 
         inital_menu = Scene(game_scene=False) 
 
         inital_menu.add_ui(get_play_button(self.play))
+        inital_menu.add_ui(CreditsMenuButton(self.show_credits))
         inital_menu.add_entity(get_initial_menu_background())
         inital_menu.add_ui(Title())
         self.scenes["menu"] = inital_menu
@@ -116,7 +119,13 @@ class Game:
                     self.handle_keydown(event.key, event.mod)
 
             self.screen.fill(self.FILL_COLOR)
-            if self.current_scene == "game" and self.phase_transition_active:
+            if self.current_scene == "credits":
+                self.credits.update(delta, pygame.key.get_pressed()[pygame.K_SPACE] or
+                                    pygame.key.get_pressed()[pygame.K_LSHIFT] or
+                                    pygame.key.get_pressed()[pygame.K_RSHIFT])
+                if self.current_scene == "credits":
+                    self.credits.draw(self.screen)
+            elif self.current_scene == "game" and self.phase_transition_active:
                 self.update_phase_transition(delta)
             else:
                 self.scenes[self.current_scene].run(self.screen, delta, events)
@@ -148,12 +157,13 @@ class Game:
             return
         if self.current_scene == "menu" and key in (pygame.K_RETURN, pygame.K_KP_ENTER):
             self.play()
+        elif self.current_scene == "menu" and key == pygame.K_c:
+            self.show_credits()
+        elif self.current_scene == "credits" and key == pygame.K_ESCAPE:
+            self.return_to_menu()
         elif (self.current_scene == "game" and getattr(getattr(self, "run_state", None), "is_game_over", False)
               and key in (pygame.K_RETURN, pygame.K_KP_ENTER)):
             self.restart_campaign()
-        elif (self.current_scene == "game" and getattr(self, "campaign_completed", False)
-              and key in (pygame.K_RETURN, pygame.K_KP_ENTER)):
-            self.return_to_menu()
         elif (self.current_scene == "game" and key == pygame.K_p
               and modifiers & pygame.KMOD_CTRL
               and modifiers & pygame.KMOD_SHIFT):
@@ -171,7 +181,11 @@ class Game:
 
     def return_to_menu(self):
         """Limpa a partida atual e prepara uma campanha nova para o próximo play."""
-        if self.current_scene != "game":
+        if self.current_scene == "credits" and not self.credits_from_game:
+            self.credits = None
+            self.change_scene_to("menu")
+            return
+        if self.current_scene not in ("game", "credits"):
             return
         game_scene = self.scenes["game"]
         game_scene.clear_scene()
@@ -184,6 +198,8 @@ class Game:
         self.campaign_completed = False
         self._pending_phase = None
         self._phase_transition_remaining = 0.0
+        self.credits = None
+        self.credits_from_game = False
         self.play_music(BACKGROUND_MUSIC_PATH)
         self.change_scene_to("menu")
 
@@ -215,7 +231,14 @@ class Game:
         if self.current_scene != "game" or self.campaign_completed:
             return
         self.campaign_completed = True
-        self.scenes["game"].add_ui(VictoryOverlay(), "victory")
+        self.show_credits()
+
+    def show_credits(self):
+        if self.current_scene not in ("menu", "game"):
+            return
+        self.credits_from_game = self.current_scene == "game"
+        self.credits = Credits(self.return_to_menu, self.screen.get_size())
+        self.change_scene_to("credits")
 
     def load_phase(self, phase: Phase):
         self.play_music(BOSS_MUSIC_PATH if phase.boss_fight else BACKGROUND_MUSIC_PATH)

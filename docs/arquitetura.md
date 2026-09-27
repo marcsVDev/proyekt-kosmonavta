@@ -2,13 +2,15 @@
 
 ## Visão geral
 
-`src/game.py` cria duas cenas: `menu` e `game`. O loop roda a 60 FPS, coleta
+`src/game.py` cria duas cenas de jogo, `menu` e `game`, e controla a cena
+independente `credits`. O loop roda a 60 FPS, coleta
 eventos do Pygame, delega atualização/desenho à cena ativa e apresenta o frame.
 O delta de tempo é convertido para segundos e entregue aos sistemas e entidades.
 
 ```text
 Game
- ├─ Scene(menu): fundo, título e botão Play
+ ├─ Scene(menu): fundo, título, Play e Créditos
+ ├─ Credits: cartões pré-renderizados, sprites animados e rolagem por delta
  ├─ RunState: HP e derrota da campanha
  └─ Scene(game)
      ├─ Progression: escolhe e avança fases
@@ -30,6 +32,9 @@ ao `BossFightSystem`. Todas as instâncias de `Player` recebem o mesmo
 `RunState`, portanto a troca de fase não cura Valentina. Na Órbita, somente o
 diretor do boss emite `PHASE_COMPLETED`, após a animação de derrota da
 Nave-Mãe. Depois da sexta fase, `Progression` emite `GAME_COMPLETED`.
+Nesse evento, `Game` abre `Credits`; a opção do menu usa o mesmo componente.
+`Credits` carrega os recursos uma vez, mantém as atribuições da equipe em
+`src/ui/credits.py` e volta ao menu com Esc ou após o último cartão.
 
 Entre duas fases, `Game` pausa a atualização da cena por 1 s e mantém o frame
 preto. A música ambiente é substituída por `musicfinal.mp3` ao entrar na

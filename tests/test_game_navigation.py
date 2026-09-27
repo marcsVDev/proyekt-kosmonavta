@@ -57,18 +57,18 @@ class GameNavigationTest(unittest.TestCase):
         game.handle_keydown(pygame.K_ESCAPE)
         game.return_to_menu.assert_called_once_with()
 
-    def test_completed_game_shows_thanks_and_enter_returns_to_menu(self):
+    def test_completed_game_opens_credits_and_escape_returns_to_menu(self):
         game = self.make_game("game")
         game.campaign_completed = False
-        scene = Mock()
-        game.scenes = {"game": scene}
+        game.show_credits = Mock()
 
         game.game_completed()
         self.assertTrue(game.campaign_completed)
-        self.assertEqual(scene.add_ui.call_args.args[1], "victory")
+        game.show_credits.assert_called_once_with()
         game.game_completed()
-        scene.add_ui.assert_called_once()
-        game.handle_keydown(pygame.K_RETURN)
+        game.show_credits.assert_called_once_with()
+        game.current_scene = "credits"
+        game.handle_keydown(pygame.K_ESCAPE)
         game.return_to_menu.assert_called_once_with()
 
     def test_ctrl_shift_p_skips_dialogues_without_returning_to_menu(self):
