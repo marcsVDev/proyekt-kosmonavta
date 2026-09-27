@@ -191,8 +191,9 @@ class Credits:
         mars_width = self.width
         self.mars = pygame.transform.smoothscale(
             mars, (mars_width, round(mars.get_height() * mars_width / mars.get_width())))
-        self.mars_rect = self.mars.get_rect(midtop=(self.width // 2, -int(self.height * .17)))
+        self.mars_rect = self.mars.get_rect(midtop=(self.width // 2, -int(self.height * .33)))
         self.mars_mask = pygame.mask.from_surface(self.mars)
+        self.mars_opaque_bottom = max(rect.bottom for rect in self.mars_mask.get_bounding_rects())
         self.finished = False
         self.cards = [self._stage_card(stage, index) for index, stage in enumerate(STAGES)]
         self.cards.append(self._team_card())
@@ -203,7 +204,8 @@ class Credits:
         for height in self.heights:
             self.tops.append(top)
             top -= height + self.gap
-        self.finish_offset = self.height - self.tops[-1]
+        # O último cartão sai da tela antes de Marte começar a aparecer.
+        self.finish_offset = 2 * self.height - self.tops[-1]
 
     def _load_assets(self):
         for stage in STAGES:
@@ -313,17 +315,30 @@ class Credits:
     def update(self, delta, fast=False, keys=None):
         if self.finished:
             return
+        was_scrolling = self.offset < self.finish_offset
         self.time += max(0.0, delta)
         self.ship.update(delta, keys if keys is not None else pygame.key.get_pressed())
         self.offset = min(self.finish_offset, self.offset + max(0.0, delta) * self.SPEED
                           * (self.FAST_MULTIPLIER if fast else 1))
-        if self.offset == self.finish_offset:
+        if was_scrolling:
+            # A borda acompanha Marte e mantém a nave fora de sua silhueta
+            # até o último quadro da rolagem.
+            mars_bottom = self._mars_y() + self.mars_opaque_bottom
+            safe_y = min(self.height - self.ship.size / 2,
+                         max(self.ship.size / 2, mars_bottom + self.ship.size + 16 * self.scale))
+            if self.ship.position.y < safe_y:
+                self.ship.position.y = safe_y
+                self.ship.velocity.y = 0
+        else:
             image, rect = self.ship.image_and_rect()
             ship_mask = pygame.mask.from_surface(image)
             if self.mars_mask.overlap(ship_mask, (rect.x - self.mars_rect.x,
                                                   rect.y - self.mars_rect.y)):
                 self.finished = True
                 self.on_finish()
+
+    def _mars_y(self):
+        return self.mars_rect.y + int(self.offset - self.finish_offset)
 
     def _draw_sprites(self, screen, stage, index, card_y):
         area = self.image_rect(index).move(self.margin, card_y)
@@ -355,7 +370,7 @@ class Credits:
 
     def draw(self, screen):
         screen.fill(INK)
-        mars_y = self.mars_rect.y + int(self.offset - self.finish_offset)
+        mars_y = self._mars_y()
         mars_visible = mars_y + self.mars.get_height() > 0
         if mars_visible:
             screen.blit(self.mars, (self.mars_rect.x, mars_y))

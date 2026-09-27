@@ -68,10 +68,12 @@ As fases são declaradas em `src/initializations/phases.py`. A lista
   verificadas, distinção entre a missão fictícia e as conquistas reais, equipe
   e fontes. A rolagem desce com delta time; Espaço ou Shift acelera e Esc retorna
   ao menu. Marte ocupa toda a largura da tela e entra pela mesma rolagem dos
-  cartões. Depois do último texto, a rolagem para e a nave precisa tocar
-  Marte, no alto, para encerrar os créditos. A nave pode ser
-  pilotada com WASD ou setas, sem colisões de combate ou dano, e aparece à
-  frente dos cartões. O fundo é preto; os cenários dos cartões são estáticos.
+  cartões, com um intervalo amplo depois que o último texto sai da tela.
+  Durante a rolagem, um limite acompanha Marte e impede a nave de alcançá-lo.
+  Quando a rolagem para, a nave pode tocar Marte no alto para encerrar os
+  créditos. A nave pode ser pilotada com WASD ou setas, sem colisões de combate
+  ou dano, e aparece à frente dos cartões. O fundo é preto; os cenários dos
+  cartões são estáticos.
 - Retorno ao menu com Esc, limpando a cena e recriando a campanha para uma
   nova partida.
 

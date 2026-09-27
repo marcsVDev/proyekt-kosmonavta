@@ -125,6 +125,33 @@ class CreditsTest(unittest.TestCase):
         credits.draw(screen)
         self.assertEqual(screen.get_at((0, 0))[:3], (0, 0, 0))
 
+    def test_mars_arrives_after_cards_and_ship_waits_for_scroll(self):
+        finished = Mock()
+        credits = Credits(finished)
+        # Marte só entra depois de o último cartão ter saído por baixo.
+        first_mars_offset = credits.finish_offset - (credits.mars_rect.y + credits.mars.get_height())
+        self.assertGreater(credits.tops[-1] + first_mars_offset - credits.height,
+                           credits.height * .3)
+
+        keys = defaultdict(bool)
+        keys[pygame.K_w] = True
+        credits.offset = credits.finish_offset - 50
+        credits.ship.position.update(credits.mars_rect.centerx, credits.ship.size / 2)
+        credits.update(.2, fast=True, keys=keys)
+        self.assertEqual(credits.offset, credits.finish_offset)
+        self.assertFalse(credits.finished)
+        finished.assert_not_called()
+        image, rect = credits.ship.image_and_rect()
+        self.assertIsNone(credits.mars_mask.overlap(
+            pygame.mask.from_surface(image),
+            (rect.x - credits.mars_rect.x, rect.y - credits.mars_rect.y)))
+
+        for _ in range(30):
+            credits.update(.1, keys=keys)
+            if credits.finished:
+                break
+        finished.assert_called_once_with()
+
 
 if __name__ == "__main__":
     unittest.main()

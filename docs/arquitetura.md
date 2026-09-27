@@ -37,8 +37,9 @@ Nesse evento, `Game` abre `Credits`; Ctrl+Shift+C na tela inicial usa o mesmo co
 `src/ui/credits.py` e volta ao menu com Esc ou ao tocar Marte no encerramento. A nave
 dos créditos usa os comandos de movimento do jogo, sem participar da cena de
 combate ou receber dano. Marte ocupa a largura da tela e rola junto com os
-cartões; depois que o último cartão sai, a rolagem para e um contato da nave
-com Marte encerra a cena.
+cartões, após um intervalo amplo desde o último cartão. Enquanto a rolagem
+continua, um limite móvel mantém a nave afastada de Marte. Ao parar, o limite
+é liberado e um contato da nave com Marte encerra a cena.
 
 Entre duas fases, `Game` pausa a atualização da cena por 1 s e mantém o frame
 preto. A música ambiente é substituída por `musicfinal.mp3` ao entrar na
