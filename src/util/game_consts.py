@@ -1,13 +1,7 @@
 import os
 import sys
 
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except AttributeError:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
+from game_consts import resource_path
 
 ASSETS_PATH = resource_path("assets/")
 ENEMYS_PATH = ASSETS_PATH + "enemys/"

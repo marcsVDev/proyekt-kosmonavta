@@ -6,7 +6,7 @@ import math
 import pygame
 
 from entities.player import Player
-from game_consts import SCREEN_HEIGHT, SCREEN_WIDTH
+from game_consts import SCREEN_HEIGHT, SCREEN_WIDTH, resource_path
 from initializations.misc import get_font
 
 
@@ -47,44 +47,44 @@ class Stage:
 STAGES = (
     Stage("01 / KRASNY MIR", "O ESPAÇO TAMBÉM É DELAS",
           "Uma missão alternativa começa na estação Krasny Mir.",
-          "assets/scenery/krasny_mir_station.png",
+          resource_path("assets/scenery/krasny_mir_station.png"),
           (),
           "O voo espacial humano não pode avançar sem a participação ativa das mulheres.",
           "VALENTINA TERESHKOVA", "Na história real, foi a primeira mulher no espaço, em 1963."),
     Stage("02 / ESTRATOSFERA", "A CURIOSIDADE DECOLA",
           "A travessia sobe pelas nuvens e encontra os primeiros perigos.",
-          "assets/scenery/ceucomnuvens.png",
-          (("assets/enemys/gaivota (1).png", 128, 128, 110, "float"),
-           ("assets/enemys/meteor_enemy.png", 128, 128, 90, "spin")),
+          resource_path("assets/scenery/ceucomnuvens.png"),
+          ((resource_path("assets/enemys/gaivota (1).png"), 128, 128, 110, "float"),
+           (resource_path("assets/enemys/meteor_enemy.png"), 128, 128, 90, "spin")),
           "Mantenha o interesse pela ciência e vá bem nas aulas de matemática e ciências.",
           "SALLY RIDE", "Na história real, foi a primeira norte-americana no espaço, em 1983, e incentivou meninas nas ciências."),
     Stage("03 / ESPAÇO PRÓXIMO", "NOVOS CAMINHOS",
           "Satélites, drones e a Terra compõem o arquivo desta etapa.",
-          "assets/scenery/espaco_proximo.png",
-           (("assets/enemys/satelite_quebrado.png", 90, 90, 60, "spin"),
-            ("assets/enemys/drone_animation.png", 128, 128, 47, "float"),
-            ("assets/enemys/buran.png", 429, 429, 400, "float")),
+          resource_path("assets/scenery/espaco_proximo.png"),
+          ((resource_path("assets/enemys/satelite_quebrado.png"), 90, 90, 60, "spin"),
+           (resource_path("assets/enemys/drone_animation.png"), 128, 128, 47, "float"),
+           (resource_path("assets/enemys/buran.png"), 429, 429, 400, "float")),
           "Faça algo que você ama. Faça o que lhe dá medo.",
           "CHRISTINA KOCH", "Na história real, astronauta da NASA e participante de longas missões na Estação Espacial Internacional."),
     Stage("04 / ESPAÇO PROFUNDO", "ALÉM DO CONHECIDO",
           "A nave atravessa minas e máquinas no espaço profundo.",
-          "assets/scenery/espaco_proximo.png",
-          (("assets/enemys/minaespacial.png", 256, 256, 170, "spin"),
-           ("assets/enemys/navedomal-sheet.png", 124, 124, 115, "float"),
-           ("assets/enemys/alien_anim_final.png", 128, 128, 90, "float")),
+          resource_path("assets/scenery/espaco_proximo.png"),
+          ((resource_path("assets/enemys/minaespacial.png"), 256, 256, 170, "spin"),
+           (resource_path("assets/enemys/navedomal-sheet.png"), 124, 124, 115, "float"),
+           (resource_path("assets/enemys/alien_anim_final.png"), 128, 128, 90, "float")),
           "Mulheres como Sally Ride e Mae Jemison abriram caminho para mim e para colegas.",
           "JESSICA WATKINS", "Na história real, astronauta da NASA e geóloga; integrou a Expedição 67 da estação espacial."),
     Stage("05 / ÓRBITA DE MARTE", "DESAFIOS EM ÓRBITA",
           "A nave-mãe e suas escoltas marcam o confronto final do jogo.",
-          "assets/scenery/espaco_proximo.png",
-          (("assets/enemys/navemaeeuabossfinal.png", 480, 270, 550, "float"),
-           ("assets/enemys/gaivotarobo_anim (1).png", 128, 128, 65, "float"),
-           ("assets/enemys/navezinhabossfinal.png", 128, 128, 60, "float"),
-           ("assets/enemys/aeronavedomal.png", 128, 128, 50, "float")),
+          resource_path("assets/scenery/espaco_proximo.png"),
+          ((resource_path("assets/enemys/navemaeeuabossfinal.png"), 480, 270, 550, "float"),
+           (resource_path("assets/enemys/gaivotarobo_anim (1).png"), 128, 128, 65, "float"),
+           (resource_path("assets/enemys/navezinhabossfinal.png"), 128, 128, 60, "float"),
+           (resource_path("assets/enemys/aeronavedomal.png"), 128, 128, 50, "float")),
           fact="Estes adversários pertencem somente à ficção do jogo."),
     Stage("06 / MARTE", "O FUTURO SE ABRE",
           "Na ficção, Valentina chega a Marte. As conquistas reais das homenageadas aconteceram em outras missões.",
-          "assets/scenery/MARTE (1).png",
+          resource_path("assets/scenery/MARTE (1).png"),
           (),
           fact="Quando ciência e exploração encontram oportunidades, novas gerações podem ir mais longe."),
 )
@@ -186,7 +186,7 @@ class Credits:
         self.backgrounds = {}
         self._load_assets()
         self.ship = CreditsShip(size, self.scale)
-        mars = pygame.image.load("assets/scenery/MARTE (1).png").convert_alpha()
+        mars = pygame.image.load(resource_path("assets/scenery/MARTE (1).png")).convert_alpha()
         mars.set_colorkey(mars.get_at((0, 0)))
         mars_width = self.width
         self.mars = pygame.transform.smoothscale(

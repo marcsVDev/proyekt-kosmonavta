@@ -4,13 +4,12 @@ from pathlib import Path
 
 from pygame import Surface
 
+from game_consts import resource_path
 from ui.dialogue_panel import DialogueEntry
 from util.resources import load_image
 
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DIALOGUES_PATH = PROJECT_ROOT / "assets" / "dialogues" / "campaign.json"
-
+PROJECT_ROOT = Path(resource_path("."))
+DIALOGUES_PATH = Path(resource_path("assets/dialogues/campaign.json"))
 
 @lru_cache(maxsize=1)
 def load_dialogue_data() -> dict:
